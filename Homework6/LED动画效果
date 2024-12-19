@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h> // 用于usleep函数
+
+#define LED_PIN 13 // 假设LED连接到数字引脚13
+
+void digitalWrite(int pin, int value) {
+    // 模拟设置引脚状态
+    if (pin == LED_PIN) {
+        if (value == 1) {
+            printf("LED ON\n");
+        } else {
+            printf("LED OFF\n");
+        }
+    }
+}
+
+void delay(int milliseconds) {
+    // 模拟毫秒级延迟
+    usleep(milliseconds * 1000);
+}
+
+int main() {
+    int brightness = 0; // LED亮度
+    int fadeAmount = 5; // 每次循环改变的亮度值
+
+    while (1) {
+        // 设置LED的亮度
+        digitalWrite(LED_PIN, brightness);
+        // 等待一段时间
+        delay(50);
+
+        // 改变亮度值，实现呼吸灯效果
+        brightness = brightness + fadeAmount;
+
+        // 检查亮度是否需要反转
+        if (brightness <= 0 || brightness >= 255) {
+            fadeAmount = -fadeAmount; // 反转方向
+        }
+
+        // 限制亮度值在0到255之间
+        brightness = (brightness + 255) % 256;
+    }
+
+    return 0;
+}
