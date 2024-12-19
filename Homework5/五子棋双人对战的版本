@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define BOARD_SIZE 15
+
+//定义棋盘结构体
+typedef struct{
+    char board[BOARD_SIZE][BOARD_SIZE];
+}ChessBoard;
+
+//初始化棋盘，将每个位置设为空（这里用'.'表示）
+void initBoard(ChessBoard *board){
+    for(int i=0;i<BOARD_SIZE;i++){
+        for(int j=0;j<BOARD_SIZE;j++){
+            board->board[i][j]='.';
+        }
+    }
+}
+
+//绘制棋盘
+void drawBoard(ChessBoard board){
+    for(int i=0;i<BOARD_SIZE;i++){
+        for(int j=0;j<BOARD_SIZE;j++){
+            printf("%c ",board.board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+//判断是否有玩家获胜
+int checkWin(ChessBoard board,char piece){
+    //检查行
+    for(int i=0;i<BOARD_SIZE;i++){
+        for(int j=0;j<BOARD_SIZE-4;j++){
+            if(board.board[i][j]==piece&&board.board[i][j+1]==piece&&
+                board.board[i][j+2]==piece&&board.board[i][j+3]==piece&&
+                board.board[i][j+4]==piece)
+                return 1;
+        }
+    }
+    //检查列
+    for(int j=0;j<BOARD_SIZE;j++){
+        for(int i=0;i<BOARD_SIZE-4;i++){
+            if(board.board[i][j]==piece&&board.board[i+1][j]==piece&&
+                board.board[i+2][j]==piece&&board.board[i+3][j]==piece&&
+                board.board[i+4][j]==piece)
+                return 1;
+        }
+    }
+    //检查正斜线
+    for(int i=0;i<BOARD_SIZE-4;i++){
+        for(int j=0;j<BOARD_SIZE-4;j++){
+            if(board.board[i][j]==piece&&board.board[i+1][j+1]==piece&&
+                board.board[i+2][j+2]==piece&&board.board[i+3][j+3]==piece&&
+                board.board[i+4][j+4]==piece)
+                return 1;
+        }
+    }
+    //检查反斜线
+    for(int i=0;i<BOARD_SIZE-4;i++){
+        for(int j=4;j<BOARD_SIZE;j++){
+            if(board.board[i][j]==piece&&board.board[i+1][j-1]==piece&&
+                board.board[i+2][j-2]==piece&&board.board[i+3][j-3]==piece&&
+                board.board[i+4][j-4]==piece)
+                return 1;
+        }
+    }
+    return 0;
+}
+
+// 玩家落子
+int placePiece(ChessBoard *board,char piece,int row,int col){
+    if(row<0||row>=BOARD_SIZE||col<0||col>=BOARD_SIZE||board->board[row][col]!='.'){
+        return 0;
+    }
+    board->board[row][col]=piece;
+    return 1;
+}
+
+int main(){
+    ChessBoard gameBoard;
+    initBoard(&gameBoard);
+    char player1Piece='X';
+    char player2Piece='O';
+    int currentPlayer=1;
+    int row,col;
+
+    printf("五子棋双人对战开始！\n");
+    drawBoard(gameBoard);
+
+    while(1){
+        if(currentPlayer==1){
+            printf("玩家1（%c）请输入落子的行和列（用空格隔开）：", player1Piece);
+            scanf("%d %d",&row,&col);
+            if(placePiece(&gameBoard,player1Piece,row,col)){
+                drawBoard(gameBoard);
+                if(checkWin(gameBoard,player1Piece)){
+                    printf("玩家1获胜！\n");
+                    break;
+                }
+                currentPlayer=2;
+            }else{
+                printf("输入的位置不合法，请重新输入！\n");
+            }
+        }else{
+            printf("玩家2（%c）请输入落子的行和列（用空格隔开）：", player2Piece);
+            scanf("%d %d",&row,&col);
+            if(placePiece(&gameBoard,player2Piece,row,col)){
+                drawBoard(gameBoard);
+                if(checkWin(gameBoard,player2Piece)){
+                    printf("玩家2获胜！\n");
+                    break;
+                }
+                currentPlayer=1;
+            }else{
+                printf("输入的位置不合法，请重新输入！\n");
+            }
+        }
+    }
+
+    return 0;
+}
