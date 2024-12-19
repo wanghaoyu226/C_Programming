@@ -1,0 +1,314 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// 定义棋盘的行数和列数
+#define ROW 15
+#define COL 15
+
+// 棋盘状态，0表示空位，1表示玩家落子，2表示电脑落子
+int board[ROW][COL];
+
+// 初始化棋盘
+void initBoard() {
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            board[i][j] = 0;
+        }
+    }
+}
+
+// 显示棋盘
+void printBoard() {
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            if (board[i][j] == 0) {
+                printf(" + ");
+            } else if (board[i][j] == 1) {
+                printf(" X ");
+            } else {
+                printf(" O ");
+            }
+            if (j < COL - 1) {
+                printf("|");
+            }
+        }
+        printf("\n");
+        if (i < ROW - 1) {
+            for (int k = 0; k < COL; k++) {
+                printf("---");
+                if (k < COL - 1) {
+                    printf("+");
+                }
+            }
+            printf("\n");
+        }
+    }
+}
+
+// 判断指定位置是否为空位
+int isEmpty(int row, int col) {
+    return board[row][col] == 0;
+}
+
+// 玩家落子
+void playerMove() {
+    int row, col;
+    do {
+        printf("请输入你要落子的行（0 - %d）和列（0 - %d），用空格隔开：", ROW - 1, COL - 1);
+        scanf("%d %d", &row, &col);
+    } while (row < 0 || row >= ROW || col < 0 || col >= COL ||!isEmpty(row, col));
+    board[row][col] = 1;
+}
+
+// 判断横向是否存在某种棋型
+int checkHorizontal(int player, int countToFind) {
+    int emptyRow;
+    int emptyCol;
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL - 4; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i][j + k] == player) {
+                    count++;
+                } else if (board[i][j + k] == 0) {
+                    // 记录空位位置
+                    int emptyRow = i;
+                    int emptyCol = j + k;
+                }
+            }
+            if (count == countToFind && emptyCol!= -1) {
+                return emptyCol;
+            }
+        }
+    }
+    return -1;
+}
+
+// 判断纵向是否存在某种棋型
+int checkVertical(int player, int countToFind) {
+    int emptyRow;
+    int emptyCol;
+    for (int j = 0; j < COL; j++) {
+        for (int i = 0; i < ROW - 4; i++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j] == player) {
+                    count++;
+                } else if (board[i + k][j] == 0) {
+                    // 记录空位位置
+                    int emptyRow = i + k;
+                    int emptyCol = j;
+                }
+            }
+            if (count == countToFind && emptyCol!= -1) {
+                return emptyCol;
+            }
+        }
+    }
+    return -1;
+}
+
+// 判断正斜向是否存在某种棋型
+int checkDiagonal1(int player, int countToFind) {
+    int emptyRow;
+    int emptyCol;
+    for (int i = 0; i < ROW - 4; i++) {
+        for (int j = 0; j < COL - 4; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j + k] == player) {
+                    count++;
+                } else if (board[i + k][j + k] == 0) {
+                    // 记录空位位置
+                    int emptyRow = i + k;
+                    int emptyCol = j + k;
+                }
+            }
+            if (count == countToFind && emptyCol!= -1) {
+                return emptyCol;
+            }
+        }
+    }
+    return -1;
+}
+
+// 判断反斜向是否存在某种棋型
+int checkDiagonal2(int player, int countToFind) {
+    int emptyRow;
+    int emptyCol;
+    for (int i = 0; i < ROW - 4; i++) {
+        for (int j = 4; j < COL; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j - k] == player) {
+                    count++;
+                } else if (board[i + k][j - k] == 0) {
+                    // 记录空位位置
+                    int emptyRow = i + k;
+                    int emptyCol = j - k;
+                }
+            }
+            if (count == countToFind && emptyCol!= -1) {
+                return emptyCol;
+            }
+        }
+    }
+    return -1;
+}
+
+// 电脑智能落子
+void computerMove() {
+    // 先尝试截断玩家的“活四”“冲四”，阻止玩家连成五子
+    int colToPlace = checkHorizontal(1, 4);
+    if (colToPlace == -1) {
+        colToPlace = checkVertical(1, 4);
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal1(1, 4);
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal2(1, 4);
+    }
+    if (colToPlace!= -1) {
+        // 在找到的列中找空位
+        for (int i = 0; i < ROW; i++) {
+            if (isEmpty(i, colToPlace)) {
+                board[i][colToPlace] = 2;
+                return;
+            }
+        }
+    }
+
+    // 再尝试发展自己的“活二”（连续两个己方棋子，两边有空位），尝试形成“冲三”
+    colToPlace = checkHorizontal(2, 2);
+    if (colToPlace == -1) {
+        colToPlace = checkVertical(2, 2);
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal1(2, 2);
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal2(2, 2);
+    }
+
+    // 若没找到“活二”，寻找电脑自己的“冲三”（连续三个己方棋子，一边有空位），尝试形成“活四”
+    if (colToPlace == -1) {
+        colToPlace = checkHorizontal(2, 3);
+        if (colToPlace == -1) {
+            colToPlace = checkVertical(2, 3);
+        }
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal1(2, 3);
+    }
+    if (colToPlace == -1) {
+        colToPlace = checkDiagonal2(2, 3);
+    }
+
+    // 若还没找到合适位置，随机落子
+    int row, col;
+    if (colToPlace!= -1) {
+        // 在找到的列中找空位
+        for (int i = 0; i < ROW; i++) {
+            if (isEmpty(i, colToPlace)) {
+                row = i;
+                col = colToPlace;
+                break;
+            }
+        }
+    } else {
+        do {
+            row = rand() % ROW;
+            col = rand() % COL;
+        } while (!isEmpty(row, col));
+    }
+    board[row][col] = 2;
+}
+
+
+// 判断是否有五子连珠（横向、纵向、正斜向、反斜向）
+int checkWin(int player) {
+    // 检查横向
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL - 4; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i][j + k] == player) {
+                    count++;
+                }
+            }
+            if (count == 5) {
+                return 1;
+            }
+        }
+    }
+
+    // 检查纵向
+    for (int j = 0; j < COL; j++) {
+        for (int i = 0; i < ROW - 4; i++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j] == player) {
+                    count++;
+                }
+            }
+            if (count == 5) {
+                return 1;
+            }
+        }
+    }
+
+    // 检查正斜向（从左上角到右下角）
+    for (int i = 0; i < ROW - 4; i++) {
+        for (int j = 0; j < COL - 4; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j + k] == player) {
+                    count++;
+                }
+            }
+            if (count == 5) {
+                return 1;
+            }
+        }
+    }
+
+    // 检查反斜向（从右上角到左下角）
+    for (int i = 0; i < ROW - 4; i++) {
+        for (int j = 4; j < COL; j++) {
+            int count = 0;
+            for (int k = 0; k < 5; k++) {
+                if (board[i + k][j - k] == player) {
+                    count++;
+                }
+            }
+            if (count == 5) {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int main() {
+    srand((unsigned int)time(NULL));
+    initBoard();
+    printBoard();
+    while (1) {
+        playerMove();
+        printBoard();
+        if (checkWin(1)) {
+            printf("恭喜你，你赢了！\n");
+            break;
+        }
+        computerMove();
+        printBoard();
+        if (checkWin(2)) {
+            printf("很遗憾，电脑赢了！\n");
+            break;
+        }
+    }
+    return 0;
+}
