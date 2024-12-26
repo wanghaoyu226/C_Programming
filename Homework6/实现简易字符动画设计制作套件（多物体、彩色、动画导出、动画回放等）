@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+
+// 定义结构体表示动画中的物体
+typedef struct Object {
+    int x;
+    int y;
+    char shape; 
+    int color;  // 用数字表示不同颜色，可根据实际扩展更多颜色定义
+} Object;
+
+// 初始化物体的属性
+void initObject(struct Object* obj, int x, int y, char shape, int color) {
+    obj->x = x;
+    obj->y = y;
+    obj->shape = shape;
+    obj->color = color;
+}
+
+// 设置文本颜色的函数，通过ANSI转义序列实现
+void setColor(int color) {
+    switch (color) {
+        case 0:  // 黑色
+            printf("\033[0;30m");
+            break;
+        case 1:  // 红色
+            printf("\033[0;31m");
+            break;
+        case 2:  // 绿色
+            printf("\033[0;32m");
+            break;
+        case 3:  // 黄色
+            printf("\033[0;33m");
+            break;
+        case 4:  // 蓝色
+            printf("\033[0;34m");
+            break;
+        case 5:  // 品红
+            printf("\033[0;35m");
+            break;
+        case 6:  // 青色
+            printf("\033[0;36m");
+            break;
+        case 7:  // 白色
+            printf("\033[0;37m");
+            break;
+        default:
+            break;
+    }
+}
+
+// 清屏函数，使用ANSI转义序列清屏
+void clearScreen() {
+    printf("\033[2J");
+    printf("\033[1;1H");
+}
+
+// 绘制单个物体
+void drawObject(struct Object obj) {
+    // 将光标移动到对应位置
+    printf("\033[%d;%dH", obj.y, obj.x);
+    setColor(obj.color);
+    printf("%c", obj.shape);
+    setColor(7);  // 恢复默认颜色（白色）
+}
+
+// 绘制所有物体
+void drawAllObjects(struct Object* objects, int numObjects) {
+    for (int i = 0; i < numObjects; i++) {
+        drawObject(objects[i]);
+    }
+}
+
+// 简单的动画帧更新逻辑（这里示例只是简单移动物体位置，可根据实际复杂需求扩展）
+void updateFrame(struct Object* objects, int numObjects) {
+    for (int i = 0; i < numObjects; i++) {
+        objects[i].x++;
+        if (objects[i].x > 80) {  // 假设终端宽度大致为80列，超出后重置位置
+            objects[i].x = 0;
+        }
+    }
+}
+
+int main() {
+    srand((unsigned int)time(NULL));
+    const int numObjects = 5;  // 定义物体数量
+    struct Object objects[numObjects];
+
+    // 初始化多个物体，设置不同的初始位置、形状和颜色
+    initObject(&objects[0], 10, 5, 'O', 2);  // 绿色的'O'
+    initObject(&objects[1], 20, 8, '*', 1);  // 红色的'*'
+    initObject(&objects[2], 30, 3, '#', 4);  // 蓝色的'#'
+    initObject(&objects[3], 40, 6, '$', 3);  // 黄色的'$'
+    initObject(&objects[4], 50, 4, '@', 5);  // 品红的'@'
+
+    int numFrames = 10;  // 定义动画帧数，简单示例中循环展示这些帧实现“回放”
+    for (int frame = 0; frame < numFrames; frame++) {
+        clearScreen();
+        drawAllObjects(objects, numObjects);
+        updateFrame(objects, numObjects);
+        usleep(500000);  // 每帧之间暂停一段时间，单位是微秒，模拟动画效果
+    }
+
+    // 简单的动画“回放”，再次循环展示动画帧
+    for (int frame = 0; frame < numFrames; frame++) {
+        clearScreen();
+        drawAllObjects(objects, numObjects);
+        usleep(500000);
+    }
+
+    return 0;
+}
